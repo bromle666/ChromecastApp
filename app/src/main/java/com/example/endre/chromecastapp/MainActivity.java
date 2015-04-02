@@ -99,7 +99,7 @@ public class MainActivity extends ActionBarActivity {
                 mIsPlaying = mediaStatus.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING;
             }
         });
-        mRemoteMediaPlayer.setOnMetadataUpdatedListener( new RemoteMediaPlayer.OnMetadataUpdatedListener() {
+        mRemoteMediaPlayer.setOnMetadataUpdatedListener(new RemoteMediaPlayer.OnMetadataUpdatedListener() {
             @Override
             public void onMetadataUpdated() {
             }
@@ -109,8 +109,8 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu( Menu menu ) {
-        super.onCreateOptionsMenu( menu );
-        getMenuInflater().inflate( R.menu.menu_main, menu );
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         MenuItem mediaRouteMenuItem = menu.findItem( R.id.media_route_menu_item );
         MediaRouteActionProvider mediaRouteActionProvider = (MediaRouteActionProvider) MenuItemCompat.getActionProvider( mediaRouteMenuItem );
         mediaRouteActionProvider.setRouteSelector( mMediaRouteSelector );
@@ -136,7 +136,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
         // Start media router discovery
-        mMediaRouter.addCallback( mMediaRouteSelector, mMediaRouterCallback, MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN );
+        mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback, MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN);
     }
 
     @Override
@@ -193,7 +193,43 @@ public class MainActivity extends ActionBarActivity {
     private void launchReceiver() {
         Cast.CastOptions.Builder apiOptionsBuilder = Cast.CastOptions
                 .builder( mSelectedDevice, mCastClientListener );
-        GoogleApiClient.ConnectionCallbacks mConnectionCallbacks = new GoogleApiClient.ConnectionCallbacks();
+        GoogleApiClient.ConnectionCallbacks mConnectionCallbacks = new GoogleApiClient.ConnectionCallbacks() {
+
+            @Override
+            public void onConnected( Bundle hint ) {
+                if( mWaitingForReconnect ) {
+                    mWaitingForReconnect = false;
+                    reconnectChannels( hint );
+                } else {
+                    try {
+                        Cast.CastApi.launchApplication( mApiClient, getString( R.string.app_id ), false )
+                                .setResultCallback( new ResultCallback<Cast.ApplicationConnectionResult>() {
+                                                        @Override
+                                                        public void onResult(Cast.ApplicationConnectionResult applicationConnectionResult) {
+                                                            Status status = applicationConnectionResult.getStatus();
+                                                            if( status.isSuccess() ) {
+                                                                //Values that can be useful for storing/logic
+                                                                ApplicationMetadata applicationMetadata = applicationConnectionResult.getApplicationMetadata();
+                                                                String sessionId = applicationConnectionResult.getSessionId();
+                                                                String applicationStatus = applicationConnectionResult.getApplicationStatus();
+                                                                boolean wasLaunched = applicationConnectionResult.getWasLaunched();
+                                                                mApplicationStarted = true;
+                                                                reconnectChannels( null );
+                                                            }
+                                                        }
+                                                    }
+                                );
+                    } catch ( Exception e ) {
+
+                    }
+                }
+            }
+
+            @Override
+            public void onConnectionSuspended(int i) {
+                mWaitingForReconnect = true;
+            }
+        };
         ConnectionFailedListener mConnectionFailedListener = new ConnectionFailedListener();
         mApiClient = new GoogleApiClient.Builder( this )
                 .addApi( Cast.API, apiOptionsBuilder.build() )
@@ -211,9 +247,9 @@ public class MainActivity extends ActionBarActivity {
             try {
                 Cast.CastApi.setMessageReceivedCallbacks( mApiClient, mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer );
             } catch( IOException e ) {
-            //Log.e( TAG, "Exception while creating media channel ", e );
+                //Log.e( TAG, "Exception while creating media channel ", e );
             } catch( NullPointerException e ) {
-            //Log.e( TAG, "Something wasn't reinitialized for reconnectChannels" );
+                //Log.e( TAG, "Something wasn't reinitialized for reconnectChannels" );
             }
         }
     }
@@ -228,7 +264,7 @@ public class MainActivity extends ActionBarActivity {
                         mRemoteMediaPlayer = null;
                     }
                 } catch( IOException e ) {
-                //Log.e( TAG, "Exception while removing application " + e );
+                    //Log.e( TAG, "Exception while removing application " + e );
                 }
                 mApplicationStarted = false;
             }
@@ -247,7 +283,7 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    private class ConnectionCallbacks implements GoogleApiClient.ConnectionCallbacks {
+    /*private class ConnectionCallbacks implements GoogleApiClient.ConnectionCallbacks {
         @Override
         public void onConnected( Bundle hint ) {
             if( mWaitingForReconnect ) {
@@ -257,20 +293,20 @@ public class MainActivity extends ActionBarActivity {
                 try {
                     Cast.CastApi.launchApplication( mApiClient, getString( R.string.app_id ), false )
                             .setResultCallback( new ResultCallback<Cast.ApplicationConnectionResult>() {
-                                    @Override
-                                    public void onResult(Cast.ApplicationConnectionResult applicationConnectionResult) {
-                                        Status status = applicationConnectionResult.getStatus();
-                                        if( status.isSuccess() ) {
-                                            //Values that can be useful for storing/logic
-                                            ApplicationMetadata applicationMetadata = applicationConnectionResult.getApplicationMetadata();
-                                            String sessionId = applicationConnectionResult.getSessionId();
-                                            String applicationStatus = applicationConnectionResult.getApplicationStatus();
-                                            boolean wasLaunched = applicationConnectionResult.getWasLaunched();
-                                            mApplicationStarted = true;
-                                            reconnectChannels( null );
-                                        }
-                                    }
-                                }
+                                                    @Override
+                                                    public void onResult(Cast.ApplicationConnectionResult applicationConnectionResult) {
+                                                        Status status = applicationConnectionResult.getStatus();
+                                                        if( status.isSuccess() ) {
+                                                            //Values that can be useful for storing/logic
+                                                            ApplicationMetadata applicationMetadata = applicationConnectionResult.getApplicationMetadata();
+                                                            String sessionId = applicationConnectionResult.getSessionId();
+                                                            String applicationStatus = applicationConnectionResult.getApplicationStatus();
+                                                            boolean wasLaunched = applicationConnectionResult.getWasLaunched();
+                                                            mApplicationStarted = true;
+                                                            reconnectChannels( null );
+                                                        }
+                                                    }
+                                                }
                             );
                 } catch ( Exception e ) {
 
@@ -281,7 +317,7 @@ public class MainActivity extends ActionBarActivity {
         public void onConnectionSuspended(int i) {
             mWaitingForReconnect = true;
         }
-    }
+    }*/
 
     private class MediaRouterCallback extends MediaRouter.Callback {
         @Override

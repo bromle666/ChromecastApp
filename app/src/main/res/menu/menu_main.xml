@@ -4,4 +4,9 @@
     tools:context="com.example.endre.chromecastapp.MainActivity">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item
+        android:id="@+id/media_route_menu_item"
+        android:title="ChromecastApp"
+        app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+        app:showAsAction="always"/>
 </menu>

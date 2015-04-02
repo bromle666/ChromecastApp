@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">ChromecastApp</string>
+    <string name="video_url">https://www.youtube.com/watch?v=dscfeQOMuGw</string>
+    <string name="app_id">8631905C</string>
+    <string name="play_video">Play Video</string>
+    <string name="pause_video">Pause Video</string>
+    <string name="resume_video">Resume Video</string>
+    <string name="video_title">Space lord</string>
+    <string name="content_type_mp4">video/mp4</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+</resources>

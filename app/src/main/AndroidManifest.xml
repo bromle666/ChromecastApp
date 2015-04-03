@@ -18,7 +18,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:label="ChromeCastApp" >
+            android:label="ChromecastApp" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -88,6 +88,7 @@ public class MainActivity extends ActionBarActivity {
                 teardown();
             }
         };
+        System.out.println("init cast listener");
     }
 
     private void initRemoteMediaPlayer() {
@@ -123,7 +124,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
         // Start media router discovery
-        mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback, MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN);
+        mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
     }
 
     @Override
@@ -136,12 +137,26 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
+                MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
+    }
+
+    @Override
+    protected void onStop() {
+        mMediaRouter.removeCallback(mMediaRouterCallback);
+        super.onStop();
+    }
+
+    @Override
     public void onDestroy() {
         teardown();
         super.onDestroy();
     }
 
     private void startVideo() {
+        System.out.println("start video");
         MediaMetadata mediaMetadata = new MediaMetadata( MediaMetadata.MEDIA_TYPE_MOVIE );
         mediaMetadata.putString( MediaMetadata.KEY_TITLE, getString( R.string.video_title ) );
 
@@ -234,9 +249,9 @@ public class MainActivity extends ActionBarActivity {
             try {
                 Cast.CastApi.setMessageReceivedCallbacks( mApiClient, mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer );
             } catch( IOException e ) {
-                //Log.e( TAG, "Exception while creating media channel ", e );
+
             } catch( NullPointerException e ) {
-                //Log.e( TAG, "Something wasn't reinitialized for reconnectChannels" );
+
             }
         }
     }
@@ -270,7 +285,7 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    /*private class ConnectionCallbacks implements GoogleApiClient.ConnectionCallbacks {
+    private class ConnectionCallbacks implements GoogleApiClient.ConnectionCallbacks {
         @Override
         public void onConnected( Bundle hint ) {
             if( mWaitingForReconnect ) {
@@ -304,7 +319,7 @@ public class MainActivity extends ActionBarActivity {
         public void onConnectionSuspended(int i) {
             mWaitingForReconnect = true;
         }
-    }*/
+    }
 
     private class MediaRouterCallback extends MediaRouter.Callback {
         @Override
@@ -313,6 +328,7 @@ public class MainActivity extends ActionBarActivity {
             initRemoteMediaPlayer();
             mSelectedDevice = CastDevice.getFromBundle( info.getExtras() );
             launchReceiver();
+
         }
         @Override
         public void onRouteUnselected( MediaRouter router, MediaRouter.RouteInfo info ) {
